@@ -11,15 +11,22 @@ class Client:
         This method is run when creating a new Client object
         """
 
+        self.host = host
+        self.server_port = server_port
+
         # Set up the socket connection to the server
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.run()
 
-        # TODO: Finish init process with necessary code
-
     def run(self):
         # Initiate the connection to the server
-        self.connection.connect((self.host, self.server_port))
+
+        try:
+            self.connection.connect((self.host, self.server_port))
+        except socket.error, e:
+            print 'Could not connect to server. Error: ' + str(e)
+
+
 
     def disconnect(self):
         # TODO: Handle disconnection

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import SocketServer
 
+connected_clients = []
+
 
 class ClientHandler(SocketServer.BaseRequestHandler):
     """
@@ -23,6 +25,15 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             received_string = self.connection.recv(4096)
             
             # TODO: Add handling of received payload from client
+
+
+    # When a new message is added, send this to all clients
+    @staticmethod
+    def broadcast(response):
+        for client in connected_clients:
+            client.request.sendall(response)
+
+
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
