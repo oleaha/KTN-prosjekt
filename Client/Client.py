@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import socket
+import MessageReceiver
+import json
 
 class Client:
     """
@@ -13,18 +15,31 @@ class Client:
 
         self.host = host
         self.server_port = server_port
+        self.message = None
+        self.username = None
 
         # Set up the socket connection to the server
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.run()
 
     def run(self):
-        # Initiate the connection to the server
 
+        # Initialize connection to server. If for some reason the client cant connect, show appropiate error message.
         try:
             self.connection.connect((self.host, self.server_port))
         except socket.error, e:
             print 'Could not connect to server. Error: ' + str(e)
+
+        self.message = MessageReceiver.MessageReceiver(self, self.connection)
+        self.message.start()
+
+        print 'Welcome to ChatBot 2031x'
+        print 'Type "exit" to log out'
+
+        # Handle login
+        self.username = raw_input('Please type in your username to log in: ')
+        self.login()
+
 
 
 
@@ -33,12 +48,24 @@ class Client:
         pass
 
     def receive_message(self, message):
-        # TODO: Handle incoming message
-        pass
+        message = json.load(message)
+
+        if message['response'] == 'login':
+            if 'error' in message:
+                print 'Something happend'
+                self.login()
+            elif self.username == message['username']:
+                print 'You are now logged in as: ' + self.username
+        else:
+            print 'Fuckme right'
 
     def send_payload(self, data):
-        # TODO: Handle sending of a payload
-        pass
+        self.connection.sendall(data)
+
+    def login(self):
+        request = json.dumps({'request': 'login', 'username': self.username})
+        self.send_payload(request)
+
 
 
 if __name__ == '__main__':
