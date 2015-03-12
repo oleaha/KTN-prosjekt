@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import SocketServer
+import json
 
 connected_clients = []
+online_usernames = {}
 
 
 class ClientHandler(SocketServer.BaseRequestHandler):
@@ -20,9 +22,25 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         self.port = self.client_address[1]
         self.connection = self.request
 
+        connected_clients.append(self)
+        print 'Client connected! ' + self.ip + ':' + str(self.port)
+
         # Loop that listens for messages from the client
         while True:
             received_string = self.connection.recv(4096)
+
+            if not received_string:
+                break
+
+            data = json.loads(received_string)
+
+            if data['request'] == 'login':
+                if self.login(data['username']):
+                    online_usernames[self.port] = data['username']
+                    response = {'response': 'login', 'username': data['username']}
+
+
+
             
             # TODO: Add handling of received payload from client
 
@@ -32,6 +50,12 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     def broadcast(response):
         for client in connected_clients:
             client.request.sendall(response)
+
+    @staticmethod
+    def login(username):
+        if username in online_usernames.values():
+            return False
+        return True
 
 
 
