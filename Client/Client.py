@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket
-import MessageReceiver
-import json
-
+from MessageReceiver import *
 class Client:
     """
     This is the chat client class
@@ -30,8 +28,7 @@ class Client:
         except socket.error, e:
             print 'Could not connect to server. Error: ' + str(e)
 
-        self.message = MessageReceiver.MessageReceiver(self, self.connection)
-        self.message.start()
+        self.message = MessageReceiver(self, self.connection)
 
         print 'Welcome to ChatBot 2031x'
         print 'Type "exit" to log out'
@@ -39,6 +36,7 @@ class Client:
         # Handle login
         self.username = raw_input('Please type in your username to log in: ')
         self.login()
+        self.message.run()
 
 
 
@@ -48,8 +46,7 @@ class Client:
         pass
 
     def receive_message(self, message):
-        message = json.load(message)
-
+        message = json.loads(message)
         if message['response'] == 'login':
             if 'error' in message:
                 print 'Something happend'
@@ -60,7 +57,7 @@ class Client:
             print 'Fuckme right'
 
     def send_payload(self, data):
-        self.connection.sendall(data)
+        self.connection.send(data)
 
     def login(self):
         request = json.dumps({'request': 'login', 'username': self.username})

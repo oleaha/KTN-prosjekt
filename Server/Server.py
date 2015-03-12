@@ -28,26 +28,22 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         # Loop that listens for messages from the client
         while True:
             received_string = self.connection.recv(4096)
-
             if not received_string:
                 break
-
             data = json.loads(received_string)
-
             if data['request'] == 'login':
                 if self.login(data['username']):
                     online_usernames[self.port] = data['username']
                     response = {'response': 'login', 'username': data['username']}
-
-
-
-            
-            # TODO: Add handling of received payload from client
+                    payload = json.dumps(response)
+                    self.broadcast(payload)
+                    # TODO: Add handling of received payload from client
 
 
     # When a new message is added, send this to all clients
-    @staticmethod
-    def broadcast(response):
+    def broadcast(self, response):
+        print online_usernames
+
         for client in connected_clients:
             client.request.sendall(response)
 
