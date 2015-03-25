@@ -28,7 +28,6 @@ class MessageReceiver(Thread):
             if data:
                 self.client.receive_message(data)
 
-
     # Stop it
     def stop(self):
         self.status = False

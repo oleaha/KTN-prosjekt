@@ -36,7 +36,18 @@ class Client:
         # Handle login
         self.username = raw_input('Please type in your username to log in: ')
         self.login()
-        self.message.run()
+        self.message.start()
+        while True:
+            input = raw_input('').strip()
+            if input == 'logout':
+                self.logout()
+            elif input == 'help':
+                #TODO: Fix this
+                print 'Help'
+            elif input == 'users':
+                self.users()
+            elif input =='':
+                self.send_message(input)
 
 
 
@@ -51,8 +62,13 @@ class Client:
             if 'error' in message:
                 print 'Something happend'
                 self.login()
-            elif self.username == message['username']:
+            elif self.username == message['message']:
                 print 'You are now logged in as: ' + self.username
+        elif message['response'] == 'message':
+            print message['message']
+        elif message['response'] == 'users':
+            print message['message']
+
         else:
             print 'Fuckme right'
 
@@ -62,6 +78,20 @@ class Client:
     def login(self):
         request = json.dumps({'request': 'login', 'username': self.username})
         self.send_payload(request)
+
+    def logout(self):
+        request = json.dumps({'request': 'logout', 'username': self.username})
+        self.send_payload(request)
+        self.connection.disconnect()
+
+    def users(self):
+        request = json.dumps({'request': 'users', 'username': self.username})
+        self.send_payload(request)
+
+    def send_message(self, input):
+        request = json.dumps({'request': 'message', 'username': self.username, 'message': input})
+        self.send_payload(request)
+
 
 
 

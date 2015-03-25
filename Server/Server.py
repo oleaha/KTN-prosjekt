@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import SocketServer
 import json
+import datetime
 
 connected_clients = []
 online_usernames = {}
@@ -31,19 +32,34 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             if not received_string:
                 break
             data = json.loads(received_string)
+
             if data['request'] == 'login':
                 if self.login(data['username']):
                     online_usernames[self.port] = data['username']
-                    response = {'response': 'login', 'username': data['username']}
-                    payload = json.dumps(response)
-                    self.broadcast(payload)
-                    # TODO: Add handling of received payload from client
+                    self.make_package('login', data['username'])
+                    self.make_package('message', self.get_datetime() + ' - system : ' + data['username'] + ' joined the channel')
+
+            elif data['request'] == 'logout':
+                if not self.login(data['username']):
+                    self.make_package('logout', self.get_datetime() + ' - system : ' + data['username'] + ' left the channel')
+                    del online_usernames[self.port]
+
+            elif data['request'] == 'users':
+                users = self.get_datetime() + ' - system : online users - '
+                for i in online_usernames:
+                    users += online_usernames[i] + ', '
+                self.make_package('users', users)
+
+            elif data['request'] == 'message':
+                message = self.get_datetime() + ' - ' + data['username'] + ' : ' + data['message']
+                self.make_package('message', message)
+
+    def make_package(self, response, message):
+        self.broadcast(json.dumps({'response': response, 'message': message}))
 
 
-    # When a new message is added, send this to all clients
+    #When a new message is added, send this to all clients
     def broadcast(self, response):
-        print online_usernames
-
         for client in connected_clients:
             client.request.sendall(response)
 
@@ -52,6 +68,10 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         if username in online_usernames.values():
             return False
         return True
+
+    @staticmethod
+    def get_datetime():
+        return str(datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
 
 
 
