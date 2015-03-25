@@ -38,12 +38,14 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                     online_usernames[self.port] = data['username']
                     self.make_package('login', data['username'])
                     self.make_package('message', self.get_datetime() + ' - system : ' + data['username'] + ' joined the channel')
-
+                else:
+                    self.make_package('error', 'Username already exists')
             elif data['request'] == 'logout':
                 if not self.login(data['username']):
                     self.make_package('logout', self.get_datetime() + ' - system : ' + data['username'] + ' left the channel')
                     del online_usernames[self.port]
-
+                    print 'Client disconnected! ' + self.ip + ':' + str(self.port)
+                    connected_clients.remove(self)
             elif data['request'] == 'users':
                 users = self.get_datetime() + ' - system : online users - '
                 for i in online_usernames:
@@ -51,7 +53,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                 self.make_package('users', users)
 
             elif data['request'] == 'message':
-                message = self.get_datetime() + ' - ' + data['username'] + ' : ' + data['message']
+                message = self.get_datetime() + ' - ' + data['username'] + ': ' + data['message']
                 self.make_package('message', message)
 
     def make_package(self, response, message):

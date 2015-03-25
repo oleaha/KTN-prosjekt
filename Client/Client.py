@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket
+import time
 from MessageReceiver import *
 class Client:
     """
@@ -31,10 +32,9 @@ class Client:
         self.message = MessageReceiver(self, self.connection)
 
         print 'Welcome to ChatBot 2031x'
-        print 'Type "exit" to log out'
+        print 'Type help for help'
 
         # Handle login
-        self.username = raw_input('Please type in your username to log in: ')
         self.login()
         self.message.start()
         while True:
@@ -42,21 +42,19 @@ class Client:
             if input == 'logout':
                 self.logout()
             elif input == 'help':
-                #TODO: Fix this
-                print 'Help'
+                print """Following commands are available:\n- help\n- logout\n- users [lists active users]\n- msg [start message with msg]"""
+
             elif input == 'users':
                 self.users()
-            elif input =='':
-                self.send_message(input)
-
-
-
-
-    def disconnect(self):
-        # TODO: Handle disconnection
-        pass
+            elif input[:3] == 'msg':
+                self.send_message(input[3:])
 
     def receive_message(self, message):
+
+        if not message:
+            print 'Invalid response'
+            return
+
         message = json.loads(message)
         if message['response'] == 'login':
             if 'error' in message:
@@ -68,21 +66,25 @@ class Client:
             print message['message']
         elif message['response'] == 'users':
             print message['message']
-
+        elif message['response'] == 'error':
+            print message['message']
+            self.login()
+        elif message['response'] == 'logout':
+            print message['message']
         else:
-            print 'Fuckme right'
+            print 'Something something'
 
     def send_payload(self, data):
         self.connection.send(data)
 
     def login(self):
+        self.username = raw_input('Please type in your username to log in: ')
         request = json.dumps({'request': 'login', 'username': self.username})
         self.send_payload(request)
 
     def logout(self):
         request = json.dumps({'request': 'logout', 'username': self.username})
         self.send_payload(request)
-        self.connection.disconnect()
 
     def users(self):
         request = json.dumps({'request': 'users', 'username': self.username})
@@ -96,7 +98,7 @@ class Client:
 
 
 if __name__ == '__main__':
-    """
+    """52987
     This is the main method and is executed when you type "python Client.py"
     in your terminal.
 
