@@ -2,16 +2,11 @@
 import socket
 import time
 from MessageReceiver import *
+
+
 class Client:
-    """
-    This is the chat client class
-    """
 
     def __init__(self, host, server_port):
-        """
-        This method is run when creating a new Client object
-        """
-
         self.host = host
         self.server_port = server_port
         self.message = None
@@ -55,7 +50,11 @@ class Client:
             print 'Invalid response'
             return
 
-        message = json.loads(message)
+        try:
+            message = json.loads(message)
+        except ValueError, e:
+            print e
+
         if message['response'] == 'login':
             if 'error' in message:
                 print 'Something happend'
@@ -71,6 +70,9 @@ class Client:
             self.login()
         elif message['response'] == 'logout':
             print message['message']
+        elif message['response'] == 'history':
+            for i, val in enumerate(message['message']):
+                print val
         else:
             print 'Something something'
 
@@ -93,8 +95,6 @@ class Client:
     def send_message(self, input):
         request = json.dumps({'request': 'message', 'username': self.username, 'message': input})
         self.send_payload(request)
-
-
 
 
 if __name__ == '__main__':
